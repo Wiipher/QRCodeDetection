@@ -68,9 +68,11 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="OpenCV320x64.Debug.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="OpenCV320x64.Release.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -185,6 +187,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CImageMat.h" />
+    <ClInclude Include="CImageProcess.h" />
+    <ClInclude Include="CUser.h" />
     <ClInclude Include="Problem_2.h" />
     <ClInclude Include="Problem_2Dlg.h" />
     <ClInclude Include="Resource.h" />
@@ -192,6 +197,9 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CImageMat.cpp" />
+    <ClCompile Include="CImageProcess.cpp" />
+    <ClCompile Include="CUser.cpp" />
     <ClCompile Include="Problem_2.cpp" />
     <ClCompile Include="Problem_2Dlg.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -213,4 +221,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="Problem_2.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

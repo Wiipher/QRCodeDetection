@@ -58,12 +58,17 @@ CProblem_2Dlg::CProblem_2Dlg(CWnd* pParent /*=NULL*/)
 void CProblem_2Dlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_EDIT1, m_msgBox);
+	DDX_Control(pDX, IDC_PIC_TARGET, m_picTarget);
+	DDX_Control(pDX, IDC_PIC_PIECE, m_picPiece);
+	DDX_Control(pDX, IDC_LIST_PIECE, m_listBox);
 }
 
 BEGIN_MESSAGE_MAP(CProblem_2Dlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_COMMAND(ID_OPEN_TARGET, &CProblem_2Dlg::OnOpenTarget)
 END_MESSAGE_MAP()
 
 
@@ -99,6 +104,7 @@ BOOL CProblem_2Dlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+	GetExePath();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -142,6 +148,11 @@ void CProblem_2Dlg::OnPaint()
 	else
 	{
 		CDialogEx::OnPaint();
+
+		// User Define
+		map<int, cv::Mat>::iterator iter;
+		for (iter = showMap.begin(); iter != showMap.end(); iter++)
+			ShowPic(iter->second, iter->first, FALSE);
 	}
 }
 
@@ -152,3 +163,94 @@ HCURSOR CProblem_2Dlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+int CProblem_2Dlg::GetExePath()
+{
+	TCHAR _szPath[MAX_PATH + 1] = { 0 };
+	GetModuleFileName(NULL, _szPath, MAX_PATH);
+	(_tcsrchr(_szPath, _T('\\')))[1] = 0;//删除文件名，只获得路径字串
+	CString strPath;
+	for (int n = 0; _szPath[n]; n++)
+	{
+		if (_szPath[n] != _T('\\'))
+		{
+			strPath += _szPath[n];
+		}
+		else
+		{
+			strPath += _T("\\");
+		}
+	}
+
+	exeDir = CStringA(strPath);
+	return 1;
+}
+
+void CProblem_2Dlg::ShowPic(cv::Mat& src, int nID, bool fresh) // default = TRUE
+{
+	if (src.total() == 0)
+		return;
+	if (fresh)
+	{
+		if (showMap.find(nID) == showMap.end())
+			showMap.insert(pair<int, cv::Mat>(nID, src));
+		else
+			showMap[nID] = src;
+		this->RedrawWindow();
+	}
+
+	CWnd *pWnd = NULL;
+	pWnd = GetDlgItem(nID);
+
+	CRect rect, showRect;
+	pWnd->GetClientRect(&rect);
+	CDC *pDc = pWnd->GetDC();
+	SetStretchBltMode(pDc->m_hDC, STRETCH_HALFTONE);
+
+	int width = rect.Width();
+	int height = rect.Height();
+	cv::Mat img = cimageProcess.PicResize(src, width, height);
+	CImage cimg;
+	cimageMat.MatToCImage(img, cimg);
+	int img_w, img_h;
+	img_w = cimg.GetWidth();
+	img_h = cimg.GetHeight();
+	CPoint topleft = CPoint(rect.CenterPoint().x - img_w / 2, rect.CenterPoint().y - img_h / 2);
+	showRect = CRect(topleft, CSize(img_w, img_h));
+	cimg.StretchBlt(pDc->m_hDC, showRect, SRCCOPY);
+
+	ReleaseDC(pDc);
+}
+
+void CProblem_2Dlg::ShowMsg(const string str, bool clean) // default = FALSE
+{
+	wchar_t* ss = cUser.StringToWchar(str);
+	if (clean)
+	{
+		m_msgBox.SetWindowText(ss);
+		return;
+	}
+	m_msgBox.SetSel(-1, -1);
+	m_msgBox.ReplaceSel(ss);
+}
+
+void CProblem_2Dlg::OnOpenTarget()
+{
+	// 设置过滤器   
+	TCHAR szFilter[] = _T("Image file(*.jpg)|*.jpg|所有文件(*.*)|*.*||");
+	// 构造打开文件对话框   
+	CFileDialog fileDlg(TRUE, _T("Open File"), NULL, 0, szFilter, this);
+	fileDlg.m_ofn.lpstrInitialDir = cUser.StringToWchar(exeDir);
+
+	// 显示打开文件对话框   
+	if (IDOK == fileDlg.DoModal())
+	{
+		// 如果点击了文件对话框上的“打开”按钮，则将选择的文件路径显示到编辑框里   
+		openFilePath = cUser.WstringToString(fileDlg.GetPathName().GetBuffer());
+		fileDlg.GetPathName().ReleaseBuffer();
+		ShowMsg(openFilePath + "\r\n", TRUE);
+	}
+
+	//显示图片
+	srcPic = cv::imread(openFilePath);
+	ShowPic(srcPic, IDC_PIC_TARGET);
+}
