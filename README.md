@@ -1,8 +1,8 @@
 # QRCodeDetection
 
-### problem_1 
+### Problem_1 
 - QR code detection 
 - OpeCV3.2
 
-### problem_2 
+### Problem_2 
 - Jigsaw puzzle
